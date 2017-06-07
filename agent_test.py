@@ -18,7 +18,22 @@ class IsolationTest(unittest.TestCase):
         reload(game_agent)
         self.player1 = "Player1"
         self.player2 = "Player2"
-        self.game = isolation.Board(self.player1, self.player2)
+        self.game = isolation.Board(self.player1, self.player2, 9, 9)
+        self.game.setstate([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 57, 41])
+
+    def test_minimax_interface(self):
+        print(self.game.to_string())
+        alpha_player = game_agent.AlphaBetaPlayer()
+        alpha_move = alpha_player.alphabeta(self.game.copy(), 3)
+        print(self.game.to_string())
+        print(alpha_move)
+        player = game_agent.MinimaxPlayer()
+        move = player.minimax(self.game.copy(), 3)
+        print(self.game.to_string())
+        print(move)
+        assert (alpha_move == move)
+
+
 
 
 if __name__ == '__main__':

@@ -34,8 +34,8 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+
+    return len(game.get_legal_moves(player))
 
 
 def custom_score_2(game, player):
@@ -209,11 +209,77 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        #self.time_left = lambda: 10
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        moves = game.get_legal_moves()
+        result = max([(self.minvalue(game.forecast_move(move), game.active_player, depth-1), move)for move in moves],key=lambda x: x[0])
+        return result[1]
+
+    def minvalue(self, game, activeplayer, depth):
+        """ Implements the min value function of the minimax algorithm
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        activeplayer: object
+            Tracks the existing player for the intial move
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        Returns
+        -------
+        int
+            returns the move that results in smallest score
+
+        """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        if game.utility(activeplayer) != 0:
+            return game.utility(activeplayer)
+        elif depth == 0:
+            return self.score(game, activeplayer)
+
+        moves = game.get_legal_moves()
+        return min([self.maxvalue(game.forecast_move(move), activeplayer, depth-1) for move in moves])
+
+    def maxvalue(self, game, activeplayer, depth):
+        """ Implements the max value function for the minimax algorithm
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        activeplayer: object
+            Tracks the existing player for the intial move
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        Returns
+        -------
+         int
+            returns the move that results in the largest value
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if game.utility(activeplayer) != 0:
+            return game.utility(activeplayer)
+        elif depth == 0:
+            return self.score(game, activeplayer)
+
+        return max([self.minvalue(game.forecast_move(move), activeplayer, depth-1) for move in game.get_legal_moves()])
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -254,8 +320,23 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            depth = 0
+            while True:
+                best_move = self.alphabeta(game, depth)
+                depth += 1
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -302,8 +383,103 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        #self.time_left = lambda: 10
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        result = self.maxvalue(game, game.active_player, depth)
+        return result[1]
+
+    def minvalue(self, game, activeplayer, depth, alpha=float("-inf"), beta=float("inf")):
+        """ Implements the min value function of the minimax algorithm
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        activeplayer: object
+            Tracks the existing player for the intial move
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+
+        Returns
+        -------
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if game.utility(activeplayer) != 0:
+            return game.utility(activeplayer), game.get_player_location(activeplayer)
+        elif depth == 0:
+            return self.score(game, activeplayer), game.get_player_location(activeplayer)
+
+        v = (float("+inf"), (-1, -1))
+        for move in game.get_legal_moves():
+            v = min(v, self.maxvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta), key=lambda x: x[0])
+            v = v[0], move
+            if v[0] <= alpha:
+                return v
+            beta = min(v[0], alpha)
+        return v
+
+    def maxvalue(self, game, activeplayer, depth, alpha=float("-inf"), beta=float("inf")):
+        """ Implements the max value function for the minimax algorithm
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        activeplayer: object
+            Tracks the existing player for the intial move
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+
+
+        Returns
+        -------
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if game.utility(activeplayer) != 0:
+            return game.utility(activeplayer), game.get_player_location(activeplayer)
+        elif depth == 0:
+            return self.score(game, activeplayer), game.get_player_location(activeplayer)
+
+        v = (float("-inf"), (-1, -1))
+        for move in game.get_legal_moves():
+            v = max(v, self.minvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta), key=lambda x: x[0])
+            v = v[0], move
+            if v[0] >= beta:
+                return v
+            alpha = max(v[0], alpha)
+        return v
+
+
