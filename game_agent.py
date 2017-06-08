@@ -427,14 +427,15 @@ class AlphaBetaPlayer(IsolationPlayer):
         elif depth == 0:
             return self.score(game, activeplayer), game.get_player_location(activeplayer)
 
-        v = (float("+inf"), (-1, -1))
+        v = float("+inf")
+        best_move = (-1, -1)
         for move in game.get_legal_moves():
-            v = min(v, self.maxvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta), key=lambda x: x[0])
-            v = v[0], move
-            if v[0] <= alpha:
-                return v
-            beta = min(v[0], alpha)
-        return v
+            v_branch, tmp_move = self.maxvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta)
+            v, best_move = min((v, best_move), (v_branch, move), key=lambda x: x[0])
+            if v <= alpha:
+                return v, best_move
+            beta = min(v, alpha)
+        return v, best_move
 
     def maxvalue(self, game, activeplayer, depth, alpha=float("-inf"), beta=float("inf")):
         """ Implements the max value function for the minimax algorithm
@@ -469,17 +470,18 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         if game.utility(activeplayer) != 0:
-            return game.utility(activeplayer), game.get_player_location(activeplayer)
+            return game.utility(activeplayer), (-1, -1)
         elif depth == 0:
-            return self.score(game, activeplayer), game.get_player_location(activeplayer)
+            return self.score(game, activeplayer), (-1, -1)
 
-        v = (float("-inf"), (-1, -1))
+        v = float("-inf")
+        best_move = (-1,-1)
         for move in game.get_legal_moves():
-            v = max(v, self.minvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta), key=lambda x: x[0])
-            v = v[0], move
-            if v[0] >= beta:
-                return v
-            alpha = max(v[0], alpha)
-        return v
+            v_branch, tmp_move = self.minvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta)
+            v, best_move = max((v, best_move), (v_branch, move), key=lambda x: x[0])
+            if v >= beta:
+                return v, best_move
+            alpha = max(v, alpha)
+        return v, best_move
 
 
