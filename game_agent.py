@@ -35,7 +35,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    return len(game.get_legal_moves(player))
+    return float(len(game.get_legal_moves(player)))
 
 
 def custom_score_2(game, player):
@@ -60,8 +60,9 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+
+    moves = game.get_legal_moves(player)
+    return calculate_weigthed_score(moves, game.height, game.width)
 
 
 def custom_score_3(game, player):
@@ -70,6 +71,7 @@ def custom_score_3(game, player):
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
+
 
     Parameters
     ----------
@@ -86,8 +88,38 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    opponent = game.get_opponent(player)
+    opponent_moves = game.get_legal_moves(opponent)
+    my_moves = game.get_legal_moves(player)
+    my_weighted_score = calculate_weigthed_score(my_moves, game.height, game.width)
+    opponent_weighted_score = calculate_weigthed_score(opponent_moves, game.height, game.width)
+
+    return my_weighted_score - opponent_weighted_score
+
+
+def calculate_weigthed_score(list_moves, height, width):
+    """
+    Weighted score of possible moves
+    Parameters
+    ----------
+    list_moves: List
+    height: integer
+    width: integer
+
+    Returns
+    -------
+    float
+        Weighted sum of moves
+    """
+
+    scores = map(lambda move: assign_weight(move, height, width), list_moves)
+    return sum(scores)
+
+
+def assign_weight(move, h, w):
+    if 0 + 2 < move[0] < w - 2 and 0 + 2 < move[1] < h - 2:
+        return 2.0
+    return 1.0
 
 
 class IsolationPlayer:
@@ -112,7 +144,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score_2, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -210,7 +242,6 @@ class MinimaxPlayer(IsolationPlayer):
                 testing.
         """
         #self.time_left = lambda: 10
-
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         moves = game.get_legal_moves()
@@ -383,12 +414,118 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        #self.time_left = lambda: 10
+       # self.time_left = lambda: 10
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
+       # v = float("-inf")
+       # best_move = (-1, -1)
+       # for move in game.get_legal_moves():
+       #     v_branch = self.minvalscalar(game.forecast_move(move), depth-1, alpha, beta)
+       #     if v < v_branch:
+       #         v = v_branch
+       #         best_move = move
+       #     if v >= beta:
+       #         return best_move
+       #     alpha = max(v, alpha)
+       # return best_move
+
         result = self.maxvalue(game, game.active_player, depth)
         return result[1]
+
+    def minvalscalar(self, game, depth, alpha=float("-inf"), beta=float("+inf")):
+        """ Implements the min value function of the minimax algorithm
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+
+        Returns
+        -------
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if depth == 0:
+            return self.score(game,self)
+        if game.utility(self) != 0:
+            return game.utility(self)
+
+        v = float("+inf")
+        best_move = (-1, -1)
+        for move in game.get_legal_moves():
+            v_new = self.maxvalscalar(game.forecast_move(move), depth-1,alpha,beta)
+            if v > v_new:
+                v = v_new
+                best_move = move
+            if v <= alpha:
+                return v
+            beta = min(beta,v)
+        return v
+
+
+    def maxvalscalar(self, game, depth, alpha=float("-inf"), beta=float("+inf")):
+        """ Implements the min value function of the minimax algorithm
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+
+        Returns
+        -------
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if depth == 0:
+            return self.score(game,self)
+        if game.utility(self) != 0:
+            return game.utility(self)
+
+        v = float("-inf")
+        best_move = (-1, -1)
+        for move in game.get_legal_moves():
+            v_new = self.minvalscalar(game.forecast_move(move), depth-1,alpha,beta)
+            if v < v_new:
+                v = v_new
+                best_move = move
+            if v >= beta:
+                return v
+            alpha = max(alpha,v)
+        return v
+
 
     def minvalue(self, game, activeplayer, depth, alpha=float("-inf"), beta=float("inf")):
         """ Implements the min value function of the minimax algorithm
@@ -422,19 +559,29 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if game.utility(activeplayer) != 0:
-            return game.utility(activeplayer), game.get_player_location(activeplayer)
+        opponent = game.get_opponent(self)
+
+        if game.utility(self) != 0:
+          #  print("Terminal state achived for ", game.active_player)
+            return game.utility(self), (-1, -1)
         elif depth == 0:
-            return self.score(game, activeplayer), game.get_player_location(activeplayer)
+          #  print(" Min Agent Leaf node achieved for ", game.get_player_location(activeplayer))
+            return self.score(game, self), (-1, -1)
 
         v = float("+inf")
         best_move = (-1, -1)
+        list_of_moves = []
         for move in game.get_legal_moves():
+            list_of_moves.append(move)
             v_branch, tmp_move = self.maxvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta)
             v, best_move = min((v, best_move), (v_branch, move), key=lambda x: x[0])
             if v <= alpha:
+           #     print(f'Min agent at {depth} potential nodes are {game.get_legal_moves()}')
+           #     print(f' Min agent at { depth } cut off for {move} value of { v }  and alpha {alpha} explored nodes are {list_of_moves}')
                 return v, best_move
-            beta = min(v, alpha)
+            beta = min(v, beta)
+       # print(f'Min agent at { depth } explored nodes are { list_of_moves} ')
+       # print(f'Min agent best move is {best_move}')
         return v, best_move
 
     def maxvalue(self, game, activeplayer, depth, alpha=float("-inf"), beta=float("inf")):
@@ -469,19 +616,30 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if game.utility(activeplayer) != 0:
-            return game.utility(activeplayer), (-1, -1)
+        opponent = game.get_opponent(self)
+        if game.utility(self) != 0:
+        #    print("Terminal state achived for ", game.get_player_location(activeplayer))
+            return game.utility(self), (-1, -1)
         elif depth == 0:
-            return self.score(game, activeplayer), (-1, -1)
+         #   print("Max agent leaf node achieved for ", game.get_player_location(activeplayer))
+            return self.score(game, self), (-1, -1)
 
         v = float("-inf")
         best_move = (-1,-1)
+        list_of_moves = []
         for move in game.get_legal_moves():
+            list_of_moves.append(move)
             v_branch, tmp_move = self.minvalue(game.forecast_move(move), activeplayer, depth-1, alpha, beta)
+          #  print(f'Max agent v,best_move is { v, best_move } and v_branch,move is  {v_branch, move}')
             v, best_move = max((v, best_move), (v_branch, move), key=lambda x: x[0])
+          #  print(f'Max agent new v, best_move is {v,best_move}')
             if v >= beta:
+           #     print(f'Max agent  at {depth} Potential nodes are {game.get_legal_moves()}')
+           #     print(f'Max agent at {depth} cut off for {move} value of { v }  and beta {beta} explored nodes are {list_of_moves}')
                 return v, best_move
             alpha = max(v, alpha)
+       # print(f'Max agent at {depth} explored nodes are {list_of_moves}')
+       # print(f'Max agent best move is {best_move}')
         return v, best_move
 
 

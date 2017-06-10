@@ -16,24 +16,27 @@ class IsolationTest(unittest.TestCase):
 
     def setUp(self):
         reload(game_agent)
-        self.player1 = "Player1"
+        self.player1 = game_agent.AlphaBetaPlayer()
         self.player2 = "Player2"
-        self.game = isolation.Board(self.player1, self.player2, 9, 9)
-        self.game.setstate([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 57, 41])
+        self.game1 = isolation.Board(self.player1, self.player2, 9, 9)
+        self.game1.setstate([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 57, 41])
+        self.player_game1 = game_agent.MinimaxPlayer()
+        self.player_game2 = "Player2"
+        self.game2 = isolation.Board(self.player_game1, self.player_game2, 9, 9)
+        self.game2.setstate([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 57, 41])
 
     def test_minimax_interface(self):
-        print(self.game.to_string())
-        alpha_player = game_agent.AlphaBetaPlayer()
-        alpha_move = alpha_player.alphabeta(self.game.copy(), 3)
-        print(self.game.to_string())
+        print(self.game1.to_string())
+        alpha_player = self.game1.active_player;
+        alpha_move = alpha_player.alphabeta(self.game1.copy(), 3)
+        print(self.game1.to_string())
         print(alpha_move)
-        player = game_agent.MinimaxPlayer()
-        move = player.minimax(self.game.copy(), 3)
-        print(self.game.to_string())
+        print(self.game2.to_string())
+        player = self.game2.active_player
+        move = player.minimax(self.game2.copy(), 3)
+        print(self.game2.to_string())
         print(move)
         assert (alpha_move == move)
-
-
 
 
 if __name__ == '__main__':
