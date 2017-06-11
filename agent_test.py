@@ -25,7 +25,7 @@ class IsolationTest(unittest.TestCase):
         self.game2 = isolation.Board(self.player_game1, self.player_game2, 9, 9)
         self.game2.setstate([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 57, 41])
 
-    def test_minimax_interface(self):
+    def test_minimax_and_ab_equivalence(self):
         print(self.game1.to_string())
         alpha_player = self.game1.active_player;
         alpha_move = alpha_player.alphabeta(self.game1.copy(), 3)
